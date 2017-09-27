@@ -1,0 +1,10 @@
+{
+  "PLUGIN_CONFIGURATION":"CDIO Paranoia Configuration",
+  "DRIVESETTINGS":"Drive settings",
+  "DRIVESETTINGSDOC":"Speed to read Audio CDs",
+  "SAVE":"Save",
+
+  "AUDIOCD":"Audio CD",
+  "CDDRIVE": "CD drive",
+  "EJECTED": "ejected"
+}

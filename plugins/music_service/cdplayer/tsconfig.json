@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "target": "es6",
+        "module": "commonjs",
+        "sourceMap": true
+    } ,
+    "files":[
+        "index.ts",
+        "./lib/CDController.ts",
+        "./lib/libdiscid.ts"
+    ]
+}

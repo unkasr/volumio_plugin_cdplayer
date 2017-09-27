@@ -1,0 +1,34 @@
+{
+  "page": {
+    "label": "PLUGIN_CONFIGURATION"
+  },
+  "sections": [
+    {
+      "id": "section_account",
+      "element": "section",
+      "label": "DRIVESETTINGS",
+      "icon": "fa-plug",
+      "onSave": {
+        "type": "controller",
+        "endpoint": "music_service/cdio_paranoia",
+        "method": "saveOptions"
+      },
+      "saveButton": {
+        "label": "SAVE",
+        "data": [
+          "readSpeed"
+        ]
+      },
+      "content": [
+        {
+          "id": "readSpeed",
+          "type": "text",
+          "element": "input",
+          "doc": "DRIVESETTINGSDOC",
+          "label": "Read speed",
+          "value": "10"
+        }
+      ]
+    }
+  ]
+}

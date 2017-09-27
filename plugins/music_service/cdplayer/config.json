@@ -1,0 +1,6 @@
+{
+    "discoverable":{
+        "type": "number",
+        "value": 10
+    }
+}
