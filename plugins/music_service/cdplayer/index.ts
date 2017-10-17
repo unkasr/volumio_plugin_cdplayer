@@ -60,6 +60,11 @@ class ControllerCdio {
         });
         
         self.mpdPlugin = self.commandRouter.pluginManager.getPlugin('music_service', 'mpd');
+        
+        self.commandRouter.executeOnPlugin('music_service', 'mpd', 'registerConfigCallback', 
+            {type: 'music_service', plugin: 'cdplayer', data: 'getMPDConfigString'}
+        );
+
 
         // Once the Plugin has successfull started resolve the promise
         defer.resolve();
@@ -126,6 +131,11 @@ class ControllerCdio {
         var self = this;
         //Perform your installation tasks here
     };
+
+    public getMPDConfigString(): string {
+        let self = this;
+        return 'input { \n\tplugin "cdio_paranoia"\n}\n';
+    }
 
 // Playback Controls ---------------------------------------------------------------------------------------
 
