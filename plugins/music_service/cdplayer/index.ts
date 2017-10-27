@@ -342,35 +342,38 @@ class ControllerCdio {
         self.logger.info('explode: ' +  uri);
 
         let parts = self.parseUri(uri);
-        let disc = self.cdController.getDisc(parts.drive).disc;
+        let drive = self.cdController.getDisc(parts.drive);
         let name = '';
         let time = 0;
-        if(parts.track) {
-            name = disc.tracks[parts.track].name;
-            time = disc.tracks[parts.track].duration;
-        } else {
-            for(let track of disc.tracks)
-            {
-                if(track){
-                    time += track.duration;
+        if(drive.loaded) {
+            if(parts.track) {
+                name = drive.disc.tracks[parts.track].name;
+                time = drive.disc.tracks[parts.track].duration;
+            } else {
+                for(let track of drive.disc.tracks)
+                {
+                    if(track){
+                        time += track.duration;
+                    }
+                    name = drive.disc.discName;
                 }
-                name = disc.discName;
             }
-        }
-        self.logger.info(JSON.stringify(disc, null, 4));
+            self.logger.info(JSON.stringify(drive.disc, null, 4));
 
-        defer.resolve({
-            uri: parts.uri,
-            service: 'cdplayer',
-            name: disc.discName,
-            title: name,
-            artist: disc.artist,
-            type: 'track',
-            albumart: disc.cover,
-            duration: time,
-            trackType: 'CD'
-        });
-	
+            defer.resolve({
+                uri: parts.uri,
+                service: 'cdplayer',
+                name: drive.disc.discName,
+                title: name,
+                artist: drive.disc.artist,
+                type: 'track',
+                albumart: drive.disc.cover,
+                duration: time,
+                trackType: 'CD'
+            });
+        } else {
+            defer.reject(new Error('no disc loaded'));
+        }
 	    return defer.promise;
     }
 
