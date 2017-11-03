@@ -6,7 +6,7 @@ sudo apt-get update
 sudo apt-get -y install libdiscid0 eject
 
 # libdiscid package does not create all symlinks
-sudo ln -s /usr/lib/arm-linux-gnueabihf/libdiscid.so.0 /usr/lib/arm-linux-gnueabi/libdiscid.so
+sudo ln -s /usr/lib/arm-linux-gnueabihf/libdiscid.so.0 /usr/lib/arm-linux-gnueabihf/libdiscid.so
 
 # make cd accessable for mpd
 sudo usermod -aG cdrom mpd
