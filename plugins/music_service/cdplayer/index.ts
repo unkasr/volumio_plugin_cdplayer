@@ -78,7 +78,7 @@ class ControllerCdio {
         // Once the Plugin has successfull stopped resolve the promise
         defer.resolve();
     
-        return libQ.promise;
+        return defer.promise;
     }
 
     public onRestart () {
