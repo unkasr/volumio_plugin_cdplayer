@@ -48,12 +48,12 @@ class ControllerCdio {
         self.addToBrowseSources();
         self.cdController = new CDController(self.context);
         self.cdController.onEjected.subscribe(function(drive){
-            self.commandRouter.pushToastMessage('succsess', "CD Drive", "Ejected");
+            self.commandRouter.pushToastMessage('success', "CD Drive", "Ejected");
             self.logger.info('disc ejected');
         });
         
         self.cdController.onLoaded.subscribe(function(drive){
-            self.commandRouter.pushToastMessage('succsess', "CD Drive", "Inserted");	
+            self.commandRouter.pushToastMessage('success', "CD Drive", "Inserted");	
             self.logger.info('disc loaded');
             self.logger.info('disc info :' + JSON.stringify(self.cdController.getDisc(drive), null, 4));
             self.cdController.setDriveSpeed(drive, self.config.get('readSpeed'));
