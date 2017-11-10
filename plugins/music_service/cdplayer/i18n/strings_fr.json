@@ -1,0 +1,11 @@
+{
+  "PLUGIN_CONFIGURATION":"Configuration du Lecteur CD",
+  "DRIVESETTINGS":"Réglages du lecteur CD",
+  "DRIVESETTINGSDOC":"Vitesse de lecture des CD Audio",
+  "READSPEED":"Vitesse de lecture",
+  "SAVE":"Sauvegarder",
+
+  "AUDIOCD":"CD Audio",
+  "CDDRIVE": "Lecteur CD",
+  "EJECTED": "Ejecté"
+}
