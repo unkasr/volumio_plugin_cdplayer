@@ -1,7 +1,8 @@
 {
-  "PLUGIN_CONFIGURATION":"CDIO Paranoia Configuration",
+  "PLUGIN_CONFIGURATION":"CD Player Configuration",
   "DRIVESETTINGS":"Drive settings",
   "DRIVESETTINGSDOC":"Speed to read Audio CDs",
+  "READSPEED":"Read speed",
   "SAVE":"Save",
 
   "AUDIOCD":"Audio CD",
