@@ -1,12 +1,12 @@
 {
   "page": {
-    "label": "PLUGIN_CONFIGURATION"
+    "label": "TRANSLATE.PLUGIN_CONFIGURATION"
   },
   "sections": [
     {
       "id": "section_account",
       "element": "section",
-      "label": "DRIVESETTINGS",
+      "label": "TRANSLATE.DRIVESETTINGS",
       "icon": "fa-plug",
       "onSave": {
         "type": "controller",
@@ -14,7 +14,7 @@
         "method": "saveOptions"
       },
       "saveButton": {
-        "label": "SAVE",
+        "label": "TRANSLATE.SAVE",
         "data": [
           "readSpeed"
         ]
@@ -24,8 +24,8 @@
           "id": "readSpeed",
           "type": "text",
           "element": "input",
-          "doc": "DRIVESETTINGSDOC",
-          "label": "Read speed",
+          "doc": "TRANSLATE.DRIVESETTINGSDOC",
+          "label": "TRANSLATE.READSPEED",
           "value": "10"
         }
       ]
