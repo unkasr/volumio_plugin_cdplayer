@@ -10,7 +10,7 @@
       "icon": "fa-plug",
       "onSave": {
         "type": "controller",
-        "endpoint": "music_service/cdio_paranoia",
+        "endpoint": "music_service/cdplayer",
         "method": "saveOptions"
       },
       "saveButton": {
