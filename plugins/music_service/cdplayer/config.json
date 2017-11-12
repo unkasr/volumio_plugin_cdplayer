@@ -1,6 +1,6 @@
 {
-    "discoverable":{
-        "type": "number",
+    "readSpeed":{
+        "type": "text",
         "value": 10
     }
 }
