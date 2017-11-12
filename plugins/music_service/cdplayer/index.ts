@@ -226,7 +226,7 @@ class ControllerCdio {
                     uri: 'cdio'
                 },
                 lists: [{
-                    "title": "CD Player",
+                    "title": "Audio CD",
                     "icon": "fa fa-folder-open-o",
                     "availableListViews": ["list","grid"],
                     "items": []
