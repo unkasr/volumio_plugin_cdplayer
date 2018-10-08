@@ -9,14 +9,21 @@ elif [ ${DPKG_ARCH} = "i386" ]; then
 fi
 
 echo "Installing cdplayer Dependencies"
+
+#Run this command after changing /etc/apt/sources.list or /etc/apt/preferences . For information regarding /etc/apt/preferences, see PinningHowto. 
+#Run this command periodically to make sure your source list is up-to-date. 
+#This is the equivalent of "Reload" in Synaptic or "Fetch updates" in Adept.
 sudo apt-get update
+
 # Install the required packages via apt-get
-sudo apt-get -y install libdiscid0 eject
+# Install library for creating MusicBrainz DiscIDs((-y)automatic yes for promts)
+sudo apt-get -y install libdiscid0 eject 
 
 # libdiscid package does not create all symlinks
 sudo ln -s ${LIB_GNUE}/libdiscid.so.0 ${LIB_GNUE}/libdiscid.so
 
-# make cd accessable for mpd
+# make cd accessable for mpd(music player daemon)
+# Add the user to the supplementary group(s)
 sudo usermod -aG cdrom mpd
 
 #requred to end the plugin install

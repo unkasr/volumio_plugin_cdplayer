@@ -1,8 +1,13 @@
 declare var child_process : any;
 
-import udev = require('udev');
+//require when I want to export it too?
+import udev = require('udev'); //bindings to libudev - API for enumerating and introspecting local devices
 import mb = require('musicbrainz');
 import libQ = require('kew');
+
+//Import a single export from a module 
+//  --import can be renamed import{exec as exec 1} from...
+//  --import * as MODULE from, import whole module
 import {exec} from 'child_process';
 import {readdir} from 'fs';
 import {SimpleEventDispatcher, SignalDispatcher, EventDispatcher, ISignal, IEvent, ISimpleEvent} from 'strongly-typed-events'
@@ -40,38 +45,47 @@ export class CDController {
     private _onLoaded = new SimpleEventDispatcher<string>();
 
     constructor(context: any) {
+        //constructor
         let self = this;
         this.context = context;
         this.logger = this.context.logger;
         this.commandRouter = this.context.coreCommand;
         
+        //create device monitor
+        this.udevMonitor = udev.monitor();
+        console.log('CDIO(CDController): ' + 'constructor: ' + 'udev monitor created');
+        
+        //this looks like listener creation. and when given event is raised, then given function is triggered.
+        this.udevMonitor.on(
+                               'change'
+                              ,function (device: any){
+                                    console.log('CDIO(CDController): ' + 'udevMonitor: ' + 'on change event raised: ' + device.DEVNAME);
+                                    self.logger.info('udev action: '+ JSON.stringify(device, null, 4));
+                                    
+                                    // has a devname entry like /dev/sr...
+                                    if(device.DEVNAME != null && device.DEVNAME.startsWith('/dev/sr')) {
+                                        if(device.ID_CDROM_MEDIA != null) {
+                                            if(device.ID_CDROM_MEDIA_TRACK_COUNT_AUDIO != null) {
+                                                // audio disc present
+                                                self.setDriveACL(device.DEVNAME);
+                                                self.addDriveInfo(device.DEVNAME);
+                                            } else {
+                                                // no audio disc
+                                                
+                                            }
+                                            
+                                        } else {
+                                            // ejected
+                                            self.logger.info('ejected');
+                                            self.cdDrives[device.DEVNAME] = {loaded: false, disc: null};
+                                            self._onEjected.dispatch(device.DEVNAME);
+                                        }
+                                    }
+                               }
+                           );
 
-        this.udevMonitor = udev.monitor();           
-        this.udevMonitor.on('change', function (device: any)
-        {
-            
-            self.logger.info('udev action: '+ JSON.stringify(device, null, 4));
-            // has a devname entry like /dev/sr...
-            if(device.DEVNAME != null && device.DEVNAME.startsWith('/dev/sr')) {
-                if(device.ID_CDROM_MEDIA != null) {
-                    if(device.ID_CDROM_MEDIA_TRACK_COUNT_AUDIO != null) {
-                        // audio disc present
-                        self.setDriveACL(device.DEVNAME);
-                        self.addDriveInfo(device.DEVNAME);
-                    } else {
-                        // no audio disc
-                        
-                    }
-                    
-                } else {
-                    // ejected
-                    self.logger.info('ejected');
-                    self.cdDrives[device.DEVNAME] = {loaded: false, disc: null};
-                    self._onEjected.dispatch(device.DEVNAME);
-                }
-            }
-        });
-
+        
+        //if cd rom is already connected I have to set it up
         readdir('/dev/', function(err, items){
             if(err){
                 self.logger.info('error : ' + err);
@@ -142,16 +156,22 @@ export class CDController {
         }
     }
 
+    //setting drive speed
     public setDriveSpeed(drive: string, speed: number)
     {
+        console.log('CDIO(CDController): ' + 'setDriveSpeed: ' + 'setting drive(' + drive + ') speed to: ' + speed);
+        
         let self = this;
         if(speed) {
             exec('/usr/bin/eject -x '+ speed.toString() + ' ' + drive, function (error, stdout, stderr){
+                //CHR: maybe add loop to find suitable speed?
                 if(error){
-                    self.logger.info('Cannot adjust speed of drive ' + drive);
+                    //self.logger.info('Cannot adjust speed of drive ' + drive);
+                    console.log('CDIO ERROR(CDController): ' + 'setDriveSpeed: ' + 'Cannot adjust speed of drive(' + drive + '): ' + stderr + ':' + stdout);
                 }
-                self.logger.info(stdout);
-                self.logger.info(stderr);
+                //why was this outside? 
+                //self.logger.info(stdout);
+                //self.logger.info(stderr);
             });
         }
     }

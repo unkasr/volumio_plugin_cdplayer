@@ -41,26 +41,44 @@ class ControllerCdio {
         return ['config.json'];
     }
 
+    //Volumio playbeck start - it is not voluion playback? it is plugin start?
     public onStart() {
+        console.log('CDIO(index): ' + '--------------------------------CDIO START--------------------------------');
+        console.log('CDIO(index): ' + 'onStart: ' + 'plugin initialization');
         let self = this;
         let defer=libQ.defer();
         
+        //adding CDIO to Volumio sources
         self.addToBrowseSources();
+        //create CD controller
         self.cdController = new CDController(self.context);
-        self.cdController.onEjected.subscribe(function(drive){
-            self.commandRouter.pushToastMessage('success', "CD Drive", "Ejected");
-            self.logger.info('disc ejected');
-        });
         
-        self.cdController.onLoaded.subscribe(function(drive){
-            self.commandRouter.pushToastMessage('success', "CD Drive", "Inserted");	
-            self.logger.info('disc loaded');
-            self.logger.info('disc info :' + JSON.stringify(self.cdController.getDisc(drive), null, 4));
-            self.cdController.setDriveSpeed(drive, self.config.get('readSpeed'));
-        });
+        //We subscribe to the observable ourselves
+        self.cdController.onEjected.subscribe(
+                                                function(drive){ //callback
+                                                    self.commandRouter.pushToastMessage('success', "CD Drive", "Ejected"); //message in Volumio interface
+                                                    
+                                                    self.logger.info('disc ejected');
+                                                }
+                                             );
         
+        //We subscribe to the observable ourselves
+        self.cdController.onLoaded.subscribe(
+                                                function(drive){ //callback
+                                                    self.commandRouter.pushToastMessage('success', "CD Drive", "Inserted");	//message in Volumio interface
+                                                    
+                                                    self.logger.info('disc loaded');
+                                                    self.logger.info('disc info :' + JSON.stringify(self.cdController.getDisc(drive), null, 4));
+                                                    
+                                                    //try to set drive speed for new drive
+                                                    self.cdController.setDriveSpeed(drive, self.config.get('readSpeed'));
+                                                }
+                                            );
+        
+        //
         self.mpdPlugin = self.commandRouter.pluginManager.getPlugin('music_service', 'mpd');
         
+        //
         self.commandRouter.executeOnPlugin('music_service', 'mpd', 'registerConfigCallback', 
             {type: 'music_service', plugin: 'cdplayer', data: 'getMPDConfigString'}
         );
@@ -68,6 +86,8 @@ class ControllerCdio {
 
         // Once the Plugin has successfull started resolve the promise
         defer.resolve();
+        
+        console.log('CDIO(index): ' + 'onStart: ' + 'plugin started');
     
         return defer.promise;
     }
@@ -78,6 +98,8 @@ class ControllerCdio {
         // Once the Plugin has successfull stopped resolve the promise
         defer.resolve();
     
+        console.log('CDIO(index): ' + 'onStop: ' + 'plugin stopped');
+        
         return defer.promise;
     }
 
@@ -141,6 +163,8 @@ class ControllerCdio {
 
     private addToBrowseSources = function () {
         // Use this function to add your music service plugin to music sources
+        console.log('CDIO(index): ' + 'addToBrowseSources: ' + 'Audio CD');
+        
         let data = {
             name: 'Audio CD', 
             uri: 'cdio', 
@@ -151,18 +175,25 @@ class ControllerCdio {
         this.commandRouter.volumioAddToBrowseSources(data);
     }
 
+    //here I am going to handle choosen song/songs?
     public handleBrowseUri(curUri: string) {
         let self = this;
-        console.log('CDIO: ' + curUri);
+        console.log('CDIO(index): ' + 'handleBrowseUri: ' + curUri);
         //self.commandRouter.logger.info('CDIO: ' + curUri);
         let response;
     
         if (curUri.startsWith('cdio/eject')) {
+            //cd rom is ejected
+            console.log('CDIO(index): ' + 'handleBrowseUri: ' + 'cd rom is ejected');
             self.cdController.eject(curUri.replace('cdio/eject',''));
             response = self.listRoot(curUri);
         } else if (curUri.startsWith('cdio/tracks')) {
+            //trying to list tracks
+            console.log('CDIO(index): ' + 'handleBrowseUri: ' + 'track is choosen');
             response = self.listTracks(curUri);
         } else if (curUri.startsWith('cdio')) {
+            //cd rom is not available
+            console.log('CDIO(index): ' + 'handleBrowseUri: ' + 'cd rom is not available');
             response = self.listRoot(curUri);
         }
     
@@ -193,6 +224,7 @@ class ControllerCdio {
         let split = self.parseUri(cUrl);
         self.logger.info('request tracks for ' + split.drive);
         let driveState: ICDState = self.cdController.getDisc(split.drive);
+        console.log('CDIO(index): ' + 'listTracks: ' + 'driveState:');
         console.dir(driveState);
         if(driveState.loaded) {
             let disc = driveState.disc;
@@ -214,6 +246,13 @@ class ControllerCdio {
                  }
             }
         }
+        else{
+            //if list is empty
+            console.log('CDIO(index): ' + 'listTracks: ' + 'disc is inserted but empty');
+        }
+        
+        
+        //return track list?
         return libQ.resolve(response);
     }
     
