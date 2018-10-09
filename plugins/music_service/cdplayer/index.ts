@@ -172,10 +172,12 @@ class ControllerCdio {
             plugin_name: 'cdplayer',
             albumart: '/albumart?sourceicon=music_service/cdplayer/icon.svg'
         };
+        //this function invoke handleBrowseUri
         this.commandRouter.volumioAddToBrowseSources(data);
     }
 
-    //here I am going to handle choosen song/songs?
+    //here I am going to handle chosen song/songs?
+    //here i am going to handle click on data sub-source
     public handleBrowseUri(curUri: string) {
         let self = this;
         console.log('CDIO(index): ' + 'handleBrowseUri: ' + curUri);
@@ -183,18 +185,29 @@ class ControllerCdio {
         let response;
     
         if (curUri.startsWith('cdio/eject')) {
-            //cd rom is ejected
-            console.log('CDIO(index): ' + 'handleBrowseUri: ' + 'cd rom is ejected');
-            self.cdController.eject(curUri.replace('cdio/eject',''));
+            
+            //eject cd rom
+            console.log('CDIO(index): ' + 'handleBrowseUri: ' + 'command: eject cd rom' + curUri);
+            
+            //this will eject cd rom
+            let ret = self.cdController.eject(curUri.replace('cdio/eject',''));
+            
+            //here is list root not okay as i understand. because cd rom is ejected
             response = self.listRoot(curUri);
+            
         } else if (curUri.startsWith('cdio/tracks')) {
             //trying to list tracks
-            console.log('CDIO(index): ' + 'handleBrowseUri: ' + 'track is choosen');
+            console.log('CDIO(index): ' + 'handleBrowseUri: ' + 'track is choosen' + curUri);
             response = self.listTracks(curUri);
         } else if (curUri.startsWith('cdio')) {
             //cd rom is not available
-            console.log('CDIO(index): ' + 'handleBrowseUri: ' + 'cd rom is not available');
+            console.log('CDIO(index): ' + 'handleBrowseUri: ' + 'cd rom is not available' + curUri);
             response = self.listRoot(curUri);
+        }
+        else {
+          //cd rom is not available - unexpected curUri
+          console.log('CDIO(index): ' + 'handleBrowseUri: ' + 'cd rom is not available - unexpected curUri:' + curUri);
+          response = self.listRoot(curUri);
         }
     
         return response;
@@ -256,6 +269,7 @@ class ControllerCdio {
         return libQ.resolve(response);
     }
     
+    //here we are going to create sub data sources
     private listRoot(cUrl: string) {
         let self=this;
     
@@ -291,6 +305,7 @@ class ControllerCdio {
             };
             response.navigation.lists[0].items.push(item);
         
+            //one eject sub source
             let eject = {
                 service: 'cdplayer',
                 type: 'folder',

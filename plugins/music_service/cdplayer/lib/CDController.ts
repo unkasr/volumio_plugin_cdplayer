@@ -134,13 +134,40 @@ export class CDController {
         return this.cdDrives[drive];
     }
 
-    public eject(drive: string) {
+    //eject cd rom drive
+    public eject(drive: string) :number {
         let self = this;
         exec('/usr/bin/eject ' + drive , function (error, stdout, stderr) {
             if(error){
-                self.logger.info('Cannot eject drive ' + drive);
+                //self.logger.info('Cannot eject drive ' + drive);
+                console.log('CDIO(CDController): ' + 'eject: ' + 'Cannot eject drive ' + drive);
+                
+                return 9;
             } 
+            else{
+                console.log('CDIO(CDController): ' + 'eject: ' + 'Drive ejected' + drive);
+            }
         });
+        
+        return 0;
+    }
+    
+    //close cd rom drive
+    public close(drive: string) :number {
+        let self = this;
+        exec('/usr/bin/eject -t ' + drive , function (error, stdout, stderr) {
+            if(error){
+                //self.logger.info('Cannot close drive ' + drive);
+                console.log('CDIO(CDController): ' + 'close: ' + 'Cannot close drive ' + drive);
+                
+                return 9;
+            } 
+            else{
+                console.log('CDIO(CDController): ' + 'close: ' + 'Drive closed' + drive);
+            }
+        });
+        
+        return 0;
     }
 
     public setDriveACL(drive: string)
