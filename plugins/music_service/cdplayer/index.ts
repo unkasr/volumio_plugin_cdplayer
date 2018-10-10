@@ -8,6 +8,11 @@ import nodetools = require('nodetools');
 import libMpd = require('mpd');
 import {CDController, IDisc, ITrack, IDrives, ICDState} from './lib/CDController';
 
+interface DISC_READY{
+    drive: string;
+    ready: boolean;
+}
+
 class ControllerCdio {
     context: any;
     commandRouter: any;
@@ -17,12 +22,14 @@ class ControllerCdio {
     cdController: any; 
     mpdPlugin: any;
 
+    //disc is ready for reading
+    private DISC_READY: DISC_READY;
+
     constructor(context: any) {
         this.context = context;
         this.commandRouter = this.context.coreCommand;
         this.logger = this.context.logger;
         this.configManager = this.context.configManager;
-        
     }
 
     // define behaviour on system start up. In our case just read config file
@@ -56,15 +63,18 @@ class ControllerCdio {
         //We subscribe to the observable ourselves
         self.cdController.onEjected.subscribe(
                                                 function(drive){ //callback
+                                                    console.log('CDIO(index): ' + 'onEjected: ' + 'event raised');
                                                     //self.commandRouter.pushToastMessage('success', "CD Drive", "Ejected"); //message in Volumio interface
                                                     
                                                     //self.logger.info('disc ejected');
+                                                    //this.DISC_READY = false;
                                                 }
                                              );
         
         //We subscribe to the observable ourselves
         self.cdController.onLoaded.subscribe(
                                                 function(drive){ //callback
+                                                    console.log('CDIO(index): ' + 'onLoaded: ' + 'event raised');
                                                     //self.commandRouter.pushToastMessage('success', "CD Drive", "Inserted");	//message in Volumio interface
                                                     
                                                     //self.logger.info('disc loaded');
@@ -72,6 +82,15 @@ class ControllerCdio {
                                                     
                                                     //try to set drive speed for new drive
                                                     self.cdController.setDriveSpeed(drive, self.config.get('readSpeed'));
+                                                    
+                                                    //this.DISC_READY = true;
+                                                }
+                                            );
+        
+        //We subscribe to the observable ourselves
+        self.cdController.onClosed.subscribe(
+                                                function(drive){ //callback
+                                                    console.log('CDIO(index): ' + 'onClosed: ' + 'event raised');
                                                 }
                                             );
         

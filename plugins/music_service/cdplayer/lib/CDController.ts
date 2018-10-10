@@ -41,9 +41,18 @@ export class CDController {
     private logger: any;
     private udevMonitor: any;
     private cdDrives: IDrives = {};
+
+    //cd rom is open
     private _onEjected = new SimpleEventDispatcher<string>();
+    
+    //cd rom is closed
+    private _onClosed = new SimpleEventDispatcher<string>();
+    
+    //disc is loaded
     private _onLoaded = new SimpleEventDispatcher<string>();
 
+    
+    
     constructor(context: any) {
         //constructor
         let self = this;
@@ -55,7 +64,14 @@ export class CDController {
         this.udevMonitor = udev.monitor();
         console.log('CDIO(CDController): ' + 'constructor: ' + 'udev monitor created');
         
-        //check already connected devices?
+        //am i able to subscribe own event?
+        //We subscribe to the observable ourselves
+        self.onClosed.subscribe(
+                                   function(drive){ //callback
+                                                    console.log('CDIO(CDController): ' + 'onClosed: ' + 'event raised');
+                                                    self.whenClosed(drive);
+                                                  }
+                               );
         
         
         //this looks like listener creation. and when given event is raised, then given function is triggered.
@@ -63,12 +79,13 @@ export class CDController {
                                'change'
                               ,function (device: any){
                                     console.log('CDIO(CDController): ' + 'udevMonitor: ' + 'on change event raised: ' + device.DEVNAME);
-                                    self.logger.info('udev action: '+ JSON.stringify(device, null, 4));
+                                    //self.logger.info('udev action: '+ JSON.stringify(device, null, 4));
                                     
                                     // has a devname entry like /dev/sr...
                                     if(device.DEVNAME != null && device.DEVNAME.startsWith('/dev/sr')) {
                                         if(device.ID_CDROM_MEDIA != null) {
                                             if(device.ID_CDROM_MEDIA_TRACK_COUNT_AUDIO != null) {
+                                                
                                                 // audio disc present
                                                 self.setDriveACL(device.DEVNAME);
                                                 self.addDriveInfo(device.DEVNAME);
@@ -79,7 +96,7 @@ export class CDController {
                                             
                                         } else {
                                             // ejected
-                                            self.logger.info('ejected');
+                                            //self.logger.info('ejected');
                                             self.cdDrives[device.DEVNAME] = {loaded: false, disc: null};
                                             self._onEjected.dispatch(device.DEVNAME);
                                         }
@@ -89,51 +106,85 @@ export class CDController {
 
         
         //if cd rom is already connected I have to set it up
-        readdir('/dev/', function(err, items){
-            if(err){
-                self.logger.info('error : ' + err);
-            }
-            for(let item of items){
-                if(item.startsWith('sr')) {
-                    self.setDriveACL('/dev/' + item);
-                    self.addDriveInfo('/dev/' + item);
-                }
-            }
-
-        });
+        this.checkDrives();
+    }
+    
+    //when cd rom drive is closed
+    private whenClosed(drive: string){
+        console.log('CDIO(CDController): ' + 'whenClosed: ' + drive);
+        this.addDriveInfo(drive);
+    }
+    
+    //check devices manually
+    private checkDrives() {
+        
+        let self = this;
+        
+        readdir('/dev/', function(err, devEntries){
+                             if(err){
+                                 //self.logger.info('error : ' + err);
+                                 console.log('CDIO(CDController): ' + 'checkDrives: ' + 'Error: ' + err);
+                             }
+                             else{
+                                 for(let devEntry of devEntries){
+                                     if(devEntry.startsWith('sr')) {
+                                         
+                                         console.log('CDIO(CDController): ' + 'checkDrives: ' + 'device found: ' + devEntry);
+                                         
+                                         //set privileges
+                                         self.setDriveACL('/dev/' + devEntry);
+                                         //close tray if it is opened
+                                         self.closeDrive('/dev/' + devEntry);
+                                         //media info
+                                         //self.addDriveInfo('/dev/' + devEntry);
+                                     }
+                                 }
+                             }
+                        
+                         }
+        );
     }
 
     private addDriveInfo(drive: string) {
+        
         let self = this;
-        libdiscid.getTracksFromMusicBrainz(drive)
-        .fail(function(e){
-            self.logger.info(e);
-            return libdiscid.getTracksFromDisc(drive);
-        })
-        .then(function(disc: IDisc){
-            self.cdDrives[drive] = {loaded: true, disc: disc};
-            self._onLoaded.dispatch(drive);
-        })
-        .fail(function(e){
-            // no disc
-            self.cdDrives[drive] = {loaded: false, disc: {discName:'', artist:'', cover: '', tracks: []}}
-            self.logger.info(e);
-        })
+        
+        //looks like something what will store info about drive
+        //what is drive here?
+        //drive is device. so it is good idea to store it?
+        console.log('CDIO(CDController): ' + 'addDriveInfo: ' + 'loding drive info from getTracksFromMusicBrainz for drive: ' + drive + '...');
+        libdiscid.getTracksFromMusicBrainz(drive).fail(
+                                                          function(e){
+                                                              //self.logger.info(e);
+                                                              //if failed, then load it in some different way
+                                                              //maybe longer solution?
+                                                              console.log('CDIO(CDController): ' + 'addDriveInfo: ' + 'loding drive info from getTracksFromMusicBrainz for drive: ' + drive + '...FAILED');
+                                                              console.log('CDIO(CDController): ' + 'addDriveInfo: ' + 'loding drive info from getTracksFromDisc for drive: ' + drive + '...');
+                                                              
+                                                              return libdiscid.getTracksFromDisc(drive);
+                                                          }
+                                                      )
+                                                 .then(
+                                                         function(disc: IDisc){
+                                                             console.log('CDIO(CDController): ' + 'addDriveInfo: ' + 'loding drive info for drive: ' + drive + '...DONE');
+                                                             
+                                                             self.cdDrives[drive] = {loaded: true, disc: disc};
+                                                             //disc info is loaded
+                                                             self._onLoaded.dispatch(drive);
+                                                         }
+                                                      )
+                                                 .fail(
+                                                         function(e){
+                                                             // no disc
+                                                             console.log('CDIO(CDController): ' + 'addDriveInfo: ' + 'loding drive info for drive: ' + drive + '...FAILED');
+                                                             
+                                                             self.cdDrives[drive] = {loaded: false, disc: {discName:'', artist:'', cover: '', tracks: []}}
+                                                             //self.logger.info(e);
+                                                         }
+                                                       )
+                                                       
     }
 
-    public get onEjected(): ISimpleEvent<string> {
-        
-        console.log('CDIO(CDController): ' + 'onEjected: ' + 'Event subscribe');
-        return this._onEjected.asEvent();
-        
-    }
-
-    public get onLoaded(): ISimpleEvent<string> {
-        
-        console.log('CDIO(CDController): ' + 'onLoaded: ' + 'Event subscribe');
-        return this._onLoaded.asEvent();
-        
-    }
 
     public get getDrives(): IDrives {
         return this.cdDrives;
@@ -155,6 +206,8 @@ export class CDController {
             } 
             else{
                 console.log('CDIO(CDController): ' + 'eject: ' + 'Drive ejected' + drive);
+                //raise event about that
+                self._onEjected.dispatch(drive);
             }
         });
         
@@ -162,31 +215,38 @@ export class CDController {
     }
     
     //close cd rom drive
-    public close(drive: string) :number {
+    public closeDrive(drive: string) :number {
         let self = this;
         exec('/usr/bin/eject -t ' + drive , function (error, stdout, stderr) {
             if(error){
                 //self.logger.info('Cannot close drive ' + drive);
-                console.log('CDIO(CDController): ' + 'close: ' + 'Cannot close drive ' + drive);
+                console.log('CDIO(CDController): ' + 'closeDrive: ' + 'Cannot close drive ' + drive);
                 
                 return 9;
             } 
             else{
-                console.log('CDIO(CDController): ' + 'close: ' + 'Drive closed' + drive);
+                console.log('CDIO(CDController): ' + 'closeDrive: ' + 'Drive closed' + drive);
+                //raise event about that
+                self._onClosed.dispatch(drive);
             }
         });
         
         return 0;
     }
 
+    //set privileges for exact drive
     public setDriveACL(drive: string)
     {
+        
         let self = this;
+        
         if(drive) {
-            self.logger.info('Adjusting ACL of drive ' + drive);
+            //self.logger.info('Adjusting ACL of drive ' + drive);
             exec('/usr/bin/sudo /bin/chmod 666 ' + drive, function (error, stdout, stderr){
                 if(error){
-                    self.logger.info('Cannot adjust ACL of drive ' + drive);
+                    //self.logger.info('Cannot adjust ACL of drive ' + drive);
+                    
+                    console.log('CDIO(CDController): ' + 'setDriveACL: ' + 'Cannot adjust ACL of drive: ' + drive);
                 }
             });
         }
@@ -214,4 +274,27 @@ export class CDController {
             });
         }
     }
+    
+    /*-------------------------------------------Event getters---------------------------------------------------*/
+    public get onEjected(): ISimpleEvent<string> {
+        
+        console.log('CDIO(CDController): ' + 'onEjected: ' + 'Event subscribe');
+        return this._onEjected.asEvent();
+        
+    }
+
+    public get onLoaded(): ISimpleEvent<string> {
+        
+        console.log('CDIO(CDController): ' + 'onLoaded: ' + 'Event subscribe');
+        return this._onLoaded.asEvent();
+        
+    }
+    
+    public get onClosed(): ISimpleEvent<string> {
+        
+        console.log('CDIO(CDController): ' + 'onClosed: ' + 'Event subscribe');
+        return this._onClosed.asEvent();
+        
+    }
+    
 }
