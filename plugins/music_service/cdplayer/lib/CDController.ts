@@ -55,6 +55,9 @@ export class CDController {
         this.udevMonitor = udev.monitor();
         console.log('CDIO(CDController): ' + 'constructor: ' + 'udev monitor created');
         
+        //check already connected devices?
+        
+        
         //this looks like listener creation. and when given event is raised, then given function is triggered.
         this.udevMonitor.on(
                                'change'
@@ -119,11 +122,17 @@ export class CDController {
     }
 
     public get onEjected(): ISimpleEvent<string> {
+        
+        console.log('CDIO(CDController): ' + 'onEjected: ' + 'Event subscribe');
         return this._onEjected.asEvent();
+        
     }
 
     public get onLoaded(): ISimpleEvent<string> {
+        
+        console.log('CDIO(CDController): ' + 'onLoaded: ' + 'Event subscribe');
         return this._onLoaded.asEvent();
+        
     }
 
     public get getDrives(): IDrives {
@@ -186,15 +195,18 @@ export class CDController {
     //setting drive speed
     public setDriveSpeed(drive: string, speed: number)
     {
-        console.log('CDIO(CDController): ' + 'setDriveSpeed: ' + 'setting drive(' + drive + ') speed to: ' + speed);
         
         let self = this;
+        
         if(speed) {
             exec('/usr/bin/eject -x '+ speed.toString() + ' ' + drive, function (error, stdout, stderr){
                 //CHR: maybe add loop to find suitable speed?
                 if(error){
                     //self.logger.info('Cannot adjust speed of drive ' + drive);
                     console.log('CDIO ERROR(CDController): ' + 'setDriveSpeed: ' + 'Cannot adjust speed of drive(' + drive + '): ' + stderr + ':' + stdout);
+                }
+                else{
+                    console.log('CDIO(CDController): ' + 'setDriveSpeed: ' + 'setting drive(' + drive + ') speed to: ' + speed);
                 }
                 //why was this outside? 
                 //self.logger.info(stdout);

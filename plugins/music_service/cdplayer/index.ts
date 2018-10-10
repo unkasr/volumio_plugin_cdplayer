@@ -56,24 +56,33 @@ class ControllerCdio {
         //We subscribe to the observable ourselves
         self.cdController.onEjected.subscribe(
                                                 function(drive){ //callback
-                                                    self.commandRouter.pushToastMessage('success', "CD Drive", "Ejected"); //message in Volumio interface
+                                                    //self.commandRouter.pushToastMessage('success', "CD Drive", "Ejected"); //message in Volumio interface
                                                     
-                                                    self.logger.info('disc ejected');
+                                                    //self.logger.info('disc ejected');
                                                 }
                                              );
         
         //We subscribe to the observable ourselves
         self.cdController.onLoaded.subscribe(
                                                 function(drive){ //callback
-                                                    self.commandRouter.pushToastMessage('success', "CD Drive", "Inserted");	//message in Volumio interface
+                                                    //self.commandRouter.pushToastMessage('success', "CD Drive", "Inserted");	//message in Volumio interface
                                                     
-                                                    self.logger.info('disc loaded');
-                                                    self.logger.info('disc info :' + JSON.stringify(self.cdController.getDisc(drive), null, 4));
+                                                    //self.logger.info('disc loaded');
+                                                    //self.logger.info('disc info :' + JSON.stringify(self.cdController.getDisc(drive), null, 4));
                                                     
                                                     //try to set drive speed for new drive
                                                     self.cdController.setDriveSpeed(drive, self.config.get('readSpeed'));
                                                 }
                                             );
+        
+        //list already available cd roms
+        console.log('CDIO(index): ' + 'onStart: ' + 'listing devices...');
+        let devices: IDrives = self.cdController.getDrives;
+        for(let device in devices)
+        {
+            console.log('CDIO(index): ' + 'onStart: ' + device);
+        }
+        console.log('CDIO(index): ' + 'onStart: ' + 'listing devices...done');
         
         //
         self.mpdPlugin = self.commandRouter.pluginManager.getPlugin('music_service', 'mpd');
@@ -187,7 +196,7 @@ class ControllerCdio {
         if (curUri.startsWith('cdio/eject')) {
             
             //eject cd rom
-            console.log('CDIO(index): ' + 'handleBrowseUri: ' + 'command: eject cd rom' + curUri);
+            console.log('CDIO(index): ' + 'handleBrowseUri: ' + 'command: eject cd rom: ' + curUri);
             
             //this will eject cd rom
             let ret = self.cdController.eject(curUri.replace('cdio/eject',''));
@@ -197,16 +206,16 @@ class ControllerCdio {
             
         } else if (curUri.startsWith('cdio/tracks')) {
             //trying to list tracks
-            console.log('CDIO(index): ' + 'handleBrowseUri: ' + 'track is choosen' + curUri);
+            console.log('CDIO(index): ' + 'handleBrowseUri: ' + 'track is choosen: ' + curUri);
             response = self.listTracks(curUri);
         } else if (curUri.startsWith('cdio')) {
             //cd rom is not available
-            console.log('CDIO(index): ' + 'handleBrowseUri: ' + 'cd rom is not available' + curUri);
+            console.log('CDIO(index): ' + 'handleBrowseUri: ' + 'cd rom is not available: ' + curUri);
             response = self.listRoot(curUri);
         }
         else {
           //cd rom is not available - unexpected curUri
-          console.log('CDIO(index): ' + 'handleBrowseUri: ' + 'cd rom is not available - unexpected curUri:' + curUri);
+          console.log('CDIO(index): ' + 'handleBrowseUri: ' + 'cd rom is not available - unexpected curUri: ' + curUri);
           response = self.listRoot(curUri);
         }
     
