@@ -8,10 +8,6 @@ import nodetools = require('nodetools');
 import libMpd = require('mpd');
 import {CDController, IDisc, ITrack, IDrives, ICDState} from './lib/CDController';
 
-interface DISC_READY{
-    drive: string;
-    ready: boolean;
-}
 
 class ControllerCdio {
     context: any;
@@ -21,9 +17,6 @@ class ControllerCdio {
     config: any;  
     cdController: any; 
     mpdPlugin: any;
-
-    //disc is ready for reading
-    private DISC_READY: DISC_READY;
 
     constructor(context: any) {
         this.context = context;
@@ -67,7 +60,10 @@ class ControllerCdio {
                                                     //self.commandRouter.pushToastMessage('success', "CD Drive", "Ejected"); //message in Volumio interface
                                                     
                                                     //self.logger.info('disc ejected');
-                                                    //this.DISC_READY = false;
+                                                    
+                                                    //i have to recalculate CDIO menu
+                                                    self.listRoot('cdio/eject');
+                                                    this.commandRouter.
                                                 }
                                              );
         
@@ -200,7 +196,7 @@ class ControllerCdio {
             plugin_name: 'cdplayer',
             albumart: '/albumart?sourceicon=music_service/cdplayer/icon.svg'
         };
-        //this function invoke handleBrowseUri
+        
         this.commandRouter.volumioAddToBrowseSources(data);
     }
 
@@ -220,21 +216,30 @@ class ControllerCdio {
             //this will eject cd rom
             let ret = self.cdController.eject(curUri.replace('cdio/eject',''));
             
-            //here is list root not okay as i understand. because cd rom is ejected
+            //i have to recalculate CDIO menu
             response = self.listRoot(curUri);
             
-        } else if (curUri.startsWith('cdio/tracks')) {
+        }else if (curUri.startsWith('cdio/load')){ 
+            console.log('CDIO(index): ' + 'handleBrowseUri: ' + 'command: load cd rom: ' + curUri);
+            
+            //this will close cd rom
+            let ret = self.cdController.closeDrive(curUri.replace('cdio/load',''));
+            
+            //I have to recalculate CDIO menu
+            response = self.listRoot(curUri);
+            
+        }else if (curUri.startsWith('cdio/tracks')) {
             //trying to list tracks
             console.log('CDIO(index): ' + 'handleBrowseUri: ' + 'track is choosen: ' + curUri);
             response = self.listTracks(curUri);
         } else if (curUri.startsWith('cdio')) {
-            //cd rom is not available
-            console.log('CDIO(index): ' + 'handleBrowseUri: ' + 'cd rom is not available: ' + curUri);
+            //top in CDIO menu
+            console.log('CDIO(index): ' + 'handleBrowseUri: ' + 'top in CDIO menu: ' + curUri);
             response = self.listRoot(curUri);
         }
         else {
-          //cd rom is not available - unexpected curUri
-          console.log('CDIO(index): ' + 'handleBrowseUri: ' + 'cd rom is not available - unexpected curUri: ' + curUri);
+          //unexpected curUri
+          console.log('CDIO(index): ' + 'handleBrowseUri: ' + 'unexpected curUri: ' + curUri);
           response = self.listRoot(curUri);
         }
     
@@ -263,8 +268,11 @@ class ControllerCdio {
         }
 
         let split = self.parseUri(cUrl);
+        
         self.logger.info('request tracks for ' + split.drive);
+        
         let driveState: ICDState = self.cdController.getDisc(split.drive);
+        
         console.log('CDIO(index): ' + 'listTracks: ' + 'driveState:');
         console.dir(driveState);
         if(driveState.loaded) {
@@ -315,36 +323,67 @@ class ControllerCdio {
             }
         };
 
+        console.log('CDIO(index): ' + 'listRoot: ' + 'starting to create CDIO menu...');
         let drives: IDrives = self.cdController.getDrives;
+        
         for(let drive in drives)
         {
+            console.log('CDIO(index): ' + 'listRoot: ' + 'drive: ' + drive);
             let driveState = self.cdController.getDisc(drive);  
-            self.logger.info(JSON.stringify(driveState, null, 4));
-            let disc = driveState.disc;
-            let item = {
-                service: 'cdplayer',
-                type: 'folder',
-                title: 'Tracks' + (driveState.loaded ? ' - ' + disc.discName : ''),
-                artist: disc.artist,
-                album: disc.discName,
-                albumart: disc.cover,
-                icon: 'fa fa-folder-open-o',
-                uri: 'cdio/tracks' + drive
-            };
-            response.navigation.lists[0].items.push(item);
+            
+            //self.logger.info(JSON.stringify(driveState, null, 4));
+            
+            //if cd rom is closed and disc loaded, then create entry
+            if (driveState.loaded){
+            
+                console.log('CDIO(index): ' + 'listRoot: ' + 'creating disc entry for drive: ' + drive);
+                let disc = driveState.disc;
+                let item = {
+                    service: 'cdplayer',
+                    type: 'folder',
+                    title: 'Tracks' + (driveState.loaded ? ' - ' + disc.discName : ''),
+                    artist: disc.artist,
+                    album: disc.discName,
+                    albumart: disc.cover,
+                    icon: 'fa fa-folder-open-o',
+                    uri: 'cdio/tracks' + drive
+                };
+                response.navigation.lists[0].items.push(item);
         
-            //one eject sub source
-            let eject = {
-                service: 'cdplayer',
-                type: 'folder',
-                title: 'Eject' + (driveState.loaded ? ' - ' + disc.discName : ''),
-                artist: '',
-                album: '',
-                icon: 'fa fa-eject',
-                uri: 'cdio/eject' + drive
+                //one eject sub source
+                console.log('CDIO(index): ' + 'listRoot: ' + 'creating eject entry for drive: ' + drive);
+                
+                let eject = {
+                    service: 'cdplayer',
+                    type: 'folder',
+                    title: 'Eject' + (driveState.loaded ? ' - ' + disc.discName : ''),
+                    artist: '',
+                    album: '',
+                    icon: 'fa fa-eject',
+                    uri: 'cdio/eject' + drive
+                }
+                response.navigation.lists[0].items.push(eject);
             }
-            response.navigation.lists[0].items.push(eject);
+            else{
+                //create on eject button
+                //one eject sub source
+                console.log('CDIO(index): ' + 'listRoot: ' + 'creating load entry for drive: ' + drive);
+                
+                let eject = {
+                    service: 'cdplayer',
+                    type: 'folder',
+                    title: 'Load ' + drive,
+                    artist: '',
+                    album: '',
+                    icon: 'fa fa-eject',
+                    uri: 'cdio/load' + drive
+                }
+                response.navigation.lists[0].items.push(eject);
+            }
+        
         }
+        
+        console.log('CDIO(index): ' + 'listRoot: ' + 'starting to create CDIO menu...DONE');
         
         return libQ.resolve(response);
     }

@@ -73,7 +73,6 @@ export class CDController {
                                                   }
                                );
         
-        
         //this looks like listener creation. and when given event is raised, then given function is triggered.
         this.udevMonitor.on(
                                'change'
@@ -97,6 +96,7 @@ export class CDController {
                                         } else {
                                             // ejected
                                             //self.logger.info('ejected');
+                                            //on change i will set device status to false and disc info to null
                                             self.cdDrives[device.DEVNAME] = {loaded: false, disc: null};
                                             self._onEjected.dispatch(device.DEVNAME);
                                         }
