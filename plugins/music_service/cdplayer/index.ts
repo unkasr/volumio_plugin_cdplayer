@@ -7,6 +7,7 @@ import udev = require("udev");
 import nodetools = require('nodetools');
 import libMpd = require('mpd');
 import {CDController, IDisc, ITrack, IDrives, ICDState} from './lib/CDController';
+import {webSocketAPI} from './lib/webSocketAPI'; 
 
 
 class ControllerCdio {
@@ -17,6 +18,7 @@ class ControllerCdio {
     config: any;  
     cdController: any; 
     mpdPlugin: any;
+    webSocketAPI: any;
 
     constructor(context: any) {
         this.context = context;
@@ -53,6 +55,9 @@ class ControllerCdio {
         //create CD controller
         self.cdController = new CDController(self.context);
         
+        //create socket interface
+        this.webSocketAPI = new webSocketAPI(self.context);
+        
         //We subscribe to the observable ourselves
         self.cdController.onEjected.subscribe(
                                                 function(drive){ //callback
@@ -63,7 +68,6 @@ class ControllerCdio {
                                                     
                                                     //i have to recalculate CDIO menu
                                                     self.listRoot('cdio/eject');
-                                                    this.commandRouter.
                                                 }
                                              );
         

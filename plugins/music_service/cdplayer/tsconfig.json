@@ -7,6 +7,7 @@
     "files":[
         "index.ts",
         "./lib/CDController.ts",
-        "./lib/libdiscid.ts"
+        "./lib/libdiscid.ts",
+        "./lib/webSocketAPI.ts"
     ]
 }
