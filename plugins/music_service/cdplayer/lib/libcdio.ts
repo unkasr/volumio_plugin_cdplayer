@@ -1,5 +1,5 @@
-import ffi = require('ffi');
-import ref = require('ref');
+import * as ffi from 'ffi';
+import * as ref from 'ref';
 import {IDisc, ITrack} from './CDController';
 
 let CdIo_t = ref.types.void;

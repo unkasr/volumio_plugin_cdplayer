@@ -1,9 +1,9 @@
-import ffi = require('ffi');
-import ref = require('ref');
-import libQ = require('kew');
-import http = require('http');
-import https = require('https');
-import {IDisc, ITrack} from './CDController'
+import ffi from 'ffi';
+import ref from 'kew';
+import * as http from 'http';
+import * as https from 'https';
+import {IDisc, ITrack} from './CDController';
+import libQ from 'kew';
 
 let disc_id_t = ref.types.void;
 let libdiscid = ffi.Library('libdiscid', {

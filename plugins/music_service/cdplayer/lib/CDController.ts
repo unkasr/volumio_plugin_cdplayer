@@ -1,9 +1,9 @@
 declare var child_process : any;
 
 //require when I want to export it too?
-import udev = require('udev'); //bindings to libudev - API for enumerating and introspecting local devices
-import mb = require('musicbrainz');
-import libQ = require('kew');
+import udev from 'udev'; //bindings to libudev - API for enumerating and introspecting local devices
+import mb from 'musicbrainz';
+import libQ from 'kew';
 
 //Import a single export from a module 
 //  --import can be renamed import{exec as exec 1} from...
@@ -11,7 +11,7 @@ import libQ = require('kew');
 import {exec} from 'child_process';
 import {readdir} from 'fs';
 import {SimpleEventDispatcher, SignalDispatcher, EventDispatcher, ISignal, IEvent, ISimpleEvent} from 'strongly-typed-events'
-import libdiscid = require('./libdiscid');
+import * as libdiscid from './libdiscid';
 
 export interface IDisc {
     discName: string,

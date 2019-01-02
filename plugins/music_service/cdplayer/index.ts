@@ -1,11 +1,12 @@
 declare var __dirname : string;
 
-import libQ = require('kew');
-import fs = require('fs-extra');
-import conf = require('v-conf');
-import udev = require("udev");
-import nodetools = require('nodetools');
-import libMpd = require('mpd');
+import * as libQ from 'kew';
+import fs from 'fs-extra';
+import conf from'v-conf';
+import udev from "udev";
+import nodetools from 'nodetools';
+import libMpd from 'mpd';
+
 import {CDController, IDisc, ITrack, IDrives, ICDState} from './lib/CDController';
 import {webSocketAPI} from './lib/webSocketAPI'; 
 
@@ -547,4 +548,4 @@ class ControllerCdio {
     }
 }
 
-export = ControllerCdio;
+export default ControllerCdio;
